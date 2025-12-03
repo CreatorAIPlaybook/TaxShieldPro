@@ -276,7 +276,7 @@ export default function TaxCalculator() {
   }, [result, priorYearTax]);
 
   // Determine which card to recommend
-  const isSafeHarborRecommended = result && !result.isCurrentYearLower;
+  const isSafeHarborRecommended = result ? !result.isCurrentYearLower : false;
 
   return (
     <div className="min-h-screen bg-background py-8 md:py-12 px-4">
