@@ -1,0 +1,71 @@
+# Project Specification: Safe Harbor 2025 Tax Shield
+
+## 1. Project Overview
+Build a single-page, browser-based React application that calculates the estimated quarterly tax payments for US Solopreneurs for the 2025 Tax Year.
+* **Goal:** Help users avoid IRS underpayment penalties by calculating the "Safe Harbor" minimum payment.
+* **Target Audience:** Freelancers/Solopreneurs earning $50k - $500k.
+* **Key Constraint:** NO backend database. All logic must run client-side in the browser for privacy.
+* **Visual Style:** Clean, trustworthy FinTech aesthetic (Tailwind CSS).
+
+## 2. Core Logic & Math (The Truth Source)
+You must use these EXACT constants for the 2025 Tax Year (Projected). Do not hallucinate 2024 numbers.
+
+**Constants:**
+* **Standard Deduction (Single):** $15,750
+* **Standard Deduction (Married Jointly):** $31,500
+* **Social Security Wage Base:** $176,100
+* **Social Security Tax Rate:** 12.4% (on earnings up to Wage Base)
+* **Medicare Tax Rate:** 2.9% (on all earnings)
+* **Additional Medicare Tax:** 0.9% (on earnings > $200k Single / $250k Married)
+
+**2025 Income Tax Brackets (Single Filer):**
+* 10%: $0 – $11,925
+* 12%: $11,926 – $48,475
+* 22%: $48,476 – $103,350
+* 24%: $103,351 – $197,300
+* 32%: $197,301 – $250,525
+* 35%: $250,526 – $626,350
+* 37%: $626,351+
+
+**2025 Income Tax Brackets (Married Jointly):**
+* 10%: $0 – $23,850
+* 12%: $23,851 – $96,950
+* 22%: $96,951 – $206,700
+* 24%: $206,701 – $394,600
+* 32%: $394,601 – $501,050
+* 35%: $501,051 – $751,600
+* 37%: $751,601+
+
+**The Safe Harbor Algorithm (The "Secret Sauce"):**
+1.  **Input:** User provides `Current Year Est. Net Profit`, `Prior Year Total Tax`, `Prior Year AGI`.
+2.  **Rule Check:**
+    * IF `Prior Year AGI` > $150,000 THEN `Safe Harbor Minimum` = 110% of `Prior Year Total Tax`.
+    * ELSE `Safe Harbor Minimum` = 100% of `Prior Year Total Tax`.
+3.  **Comparison:** Calculate `Current Year Projected Tax Liability` (Self-Employment Tax + Income Tax).
+    * `Current Year Avoidance Minimum` = 90% of `Current Year Projected Tax Liability`.
+4.  **Result:** The `Required Annual Payment` is the **LESSER** of:
+    * `Safe Harbor Minimum`
+    * OR `Current Year Avoidance Minimum`.
+
+## 3. User Interface (UI) Requirements
+**Layout:**
+* Center-aligned card layout (max-width-2xl).
+* Background: Soft gray (`bg-slate-50`).
+* Cards: White (`bg-white`) with subtle shadow (`shadow-lg`).
+
+**Input Section:**
+* **Toggle Switch:** Filing Status (Single / Married).
+* **Number Input:** "2024 Total Tax Liability" (Tooltip: "Look at Form 1040 Line 24").
+* **Number Input:** "2024 Adjusted Gross Income (AGI)" (Tooltip: "Look at Form 1040 Line 11").
+* **Number Input:** "2025 Estimated Net Profit" (Revenue minus Expenses).
+
+**Results Section (Two Cards Side-by-Side):**
+* **Card A (Based on Current Income):** Shows the estimated tax based on their 2025 profit. Label: "What you *think* you owe."
+* **Card B (Safe Harbor Minimum):** Shows the IRS Safe Harbor amount. Label: "The Minimum to avoid fines."
+* **Highlight:** If Card B is lower than Card A, highlight Card B in Green with a badge: "Recommended: Save Cash Flow."
+
+## 4. Technical Stack
+* React (Vite)
+* Tailwind CSS (for styling)
+* Lucide React (for icons)
+* **Privacy:** No Analytics, No Database, No API calls.
