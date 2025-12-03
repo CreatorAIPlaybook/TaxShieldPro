@@ -1,12 +1,18 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Lock, Info, Shield, DollarSign, TrendingDown, Calendar, CheckCircle } from 'lucide-react';
+import { Lock, Info, Shield, DollarSign, TrendingDown, Calendar, CheckCircle, RotateCcw, ChevronDown, Calculator, ShieldCheck, AlertTriangle, Download, FileText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import {
   calculateTaxes,
   formatCurrency,
@@ -16,6 +22,8 @@ import {
   type TaxCalculationResult,
   TAX_CONSTANTS_2025,
 } from '@/lib/taxCalculator';
+import { useLocalStorage, clearTaxCalculatorStorage } from '@/hooks/useLocalStorage';
+import { generateTaxSummaryPDF, generate1040ESVouchers } from '@/lib/pdfExport';
 
 interface CurrencyInputProps {
   id: string;
@@ -235,11 +243,250 @@ function QuarterlyBreakdown({ quarterlyAmount }: QuarterlyBreakdownProps) {
   );
 }
 
+interface CalculationExplanationProps {
+  netProfit: number;
+  filingStatus: FilingStatus;
+  priorYearTax: number;
+  priorYearAGI: number;
+  result: TaxCalculationResult;
+}
+
+function CalculationExplanation({ netProfit, filingStatus, priorYearTax, priorYearAGI, result }: CalculationExplanationProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const standardDeduction = TAX_CONSTANTS_2025.standardDeduction[filingStatus];
+  const seTaxableEarnings = netProfit * 0.9235;
+  const isHighIncome = priorYearAGI > TAX_CONSTANTS_2025.safeHarborHighIncomeThreshold;
+  
+  const steps = [
+    {
+      title: 'Step 1: Calculate SE Taxable Earnings',
+      description: 'Your net profit is multiplied by 92.35% to get your self-employment taxable earnings.',
+      calculation: `${formatCurrency(netProfit)} × 92.35% = ${formatCurrency(seTaxableEarnings)}`,
+    },
+    {
+      title: 'Step 2: Calculate Self-Employment Tax',
+      description: 'Social Security (12.4% up to wage base) + Medicare (2.9%) + Additional Medicare if applicable.',
+      calculation: `${formatCurrency(result.selfEmploymentTax.socialSecurityTax)} + ${formatCurrency(result.selfEmploymentTax.medicareTax)}${result.selfEmploymentTax.additionalMedicareTax > 0 ? ` + ${formatCurrency(result.selfEmploymentTax.additionalMedicareTax)}` : ''} = ${formatCurrency(result.selfEmploymentTax.totalSETax)}`,
+    },
+    {
+      title: 'Step 3: Calculate Taxable Income',
+      description: `Net profit minus half of SE tax minus standard deduction (${formatCurrency(standardDeduction)}).`,
+      calculation: `${formatCurrency(netProfit)} − ${formatCurrency(result.selfEmploymentTax.seTaxDeduction)} − ${formatCurrency(standardDeduction)} = ${formatCurrency(result.incomeTax.taxableIncome)}`,
+    },
+    {
+      title: 'Step 4: Apply Tax Brackets',
+      description: `Your taxable income is taxed progressively through the ${filingStatus === 'married' ? 'married filing jointly' : 'single'} brackets.`,
+      calculation: `Federal Income Tax = ${formatCurrency(result.incomeTax.federalIncomeTax)}`,
+    },
+    {
+      title: 'Step 5: Total 2025 Projected Tax',
+      description: 'Add self-employment tax and federal income tax together.',
+      calculation: `${formatCurrency(result.selfEmploymentTax.totalSETax)} + ${formatCurrency(result.incomeTax.federalIncomeTax)} = ${formatCurrency(result.currentYearTotalTax)}`,
+    },
+    {
+      title: 'Step 6: Calculate Safe Harbor Minimum',
+      description: isHighIncome 
+        ? `Since your 2024 AGI (${formatCurrency(priorYearAGI)}) exceeded $150,000, you must pay 110% of last year's tax.`
+        : `Since your 2024 AGI (${formatCurrency(priorYearAGI)}) was $150,000 or less, you pay 100% of last year's tax.`,
+      calculation: `${formatCurrency(priorYearTax)} × ${isHighIncome ? '110%' : '100%'} = ${formatCurrency(result.safeHarborMinimum)}`,
+    },
+    {
+      title: 'Step 7: Determine Required Payment',
+      description: 'The IRS requires the lesser of: 90% of current year tax OR your Safe Harbor amount.',
+      calculation: `min(${formatCurrency(result.currentYearAvoidanceMinimum)}, ${formatCurrency(result.safeHarborMinimum)}) = ${formatCurrency(result.requiredAnnualPayment)}`,
+    },
+  ];
+
+  return (
+    <Card data-testid="card-calculation-explanation">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover-elevate">
+            <CardTitle className="flex items-center justify-between gap-2 text-lg font-medium">
+              <div className="flex items-center gap-2">
+                <Calculator className="h-5 w-5 text-muted-foreground" />
+                How We Calculated This
+              </div>
+              <ChevronDown 
+                className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+              />
+            </CardTitle>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="pt-0 space-y-4">
+            {steps.map((step, index) => (
+              <div 
+                key={index} 
+                className="relative pl-8 pb-4 border-l-2 border-border last:border-l-0 last:pb-0"
+                data-testid={`step-${index + 1}`}
+              >
+                <div className="absolute left-0 -translate-x-1/2 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
+                  <span className="text-[10px] font-bold text-primary-foreground">{index + 1}</span>
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-medium text-foreground">{step.title}</h4>
+                  <p className="text-xs text-muted-foreground">{step.description}</p>
+                  <div className="bg-muted rounded-md px-3 py-2 font-mono text-xs tabular-nums">
+                    {step.calculation}
+                  </div>
+                </div>
+              </div>
+            ))}
+            
+            <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 mt-4">
+              <p className="text-sm font-medium text-foreground mb-1">Your Quarterly Payment</p>
+              <p className="text-xs text-muted-foreground">
+                {formatCurrency(result.requiredAnnualPayment)} ÷ 4 = <span className="font-semibold text-foreground">{formatCurrency(result.quarterlyPayment)}</span> per quarter
+              </p>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
+
+interface PenaltySavingsComparisonProps {
+  result: TaxCalculationResult;
+  priorYearTax: number;
+}
+
+function PenaltySavingsComparison({ result, priorYearTax }: PenaltySavingsComparisonProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  const irsInterestRate = 0.08;
+  
+  const worstCaseUnderpayment = Math.max(0, result.currentYearTotalTax - result.safeHarborMinimum);
+  
+  const averageQuartersUnderpaid = 2;
+  const potentialPenalty = worstCaseUnderpayment * (irsInterestRate / 12) * (averageQuartersUnderpaid * 3);
+  
+  const differenceFromSafeHarbor = result.currentYearAvoidanceMinimum - result.safeHarborMinimum;
+  const cashFlowSavings = differenceFromSafeHarbor > 0 ? differenceFromSafeHarbor : 0;
+  
+  if (priorYearTax === 0) return null;
+
+  return (
+    <Card data-testid="card-penalty-comparison">
+      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+        <CollapsibleTrigger asChild>
+          <CardHeader className="cursor-pointer hover-elevate">
+            <CardTitle className="flex items-center justify-between gap-2 text-lg font-medium">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="h-5 w-5 text-[hsl(var(--emerald-600))]" />
+                Safe Harbor Protection
+              </div>
+              <ChevronDown 
+                className={`h-5 w-5 text-muted-foreground transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} 
+              />
+            </CardTitle>
+          </CardHeader>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <CardContent className="pt-0 space-y-4">
+            <div className="bg-[hsl(var(--emerald-50))] border border-[hsl(var(--emerald-200))] rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <ShieldCheck className="h-5 w-5 text-[hsl(var(--emerald-600))] mt-0.5 shrink-0" />
+                <div>
+                  <p className="text-sm font-medium text-foreground mb-1">
+                    You're Protected from Underpayment Penalties
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    By paying the Safe Harbor amount ({formatCurrency(result.safeHarborMinimum)}), you're guaranteed 
+                    to avoid IRS underpayment penalties—even if your actual 2025 income is higher than estimated.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-foreground">What Safe Harbor Saves You</h4>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-muted rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <AlertTriangle className="h-4 w-4 text-amber-500" />
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Without Safe Harbor</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    If your income exceeds your estimate and you underpay:
+                  </p>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Potential underpayment</span>
+                      <span className="tabular-nums font-medium text-amber-600">{formatCurrency(worstCaseUnderpayment)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Est. penalty (IRS rate)</span>
+                      <span className="tabular-nums font-medium text-red-600">{formatCurrency(potentialPenalty)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-[hsl(var(--emerald-50))] rounded-lg p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldCheck className="h-4 w-4 text-[hsl(var(--emerald-600))]" />
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">With Safe Harbor</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    Pay your Safe Harbor amount and avoid all penalties:
+                  </p>
+                  <div className="space-y-1 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Penalty protection</span>
+                      <span className="tabular-nums font-medium text-[hsl(var(--emerald-600))]">100%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Peace of mind</span>
+                      <span className="tabular-nums font-medium text-[hsl(var(--emerald-600))]">Guaranteed</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {cashFlowSavings > 0 && (
+              <div className="bg-primary/5 border border-primary/10 rounded-lg p-4">
+                <p className="text-sm font-medium text-foreground mb-1">
+                  Cash Flow Advantage
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Choosing Safe Harbor saves you <span className="font-semibold text-foreground">{formatCurrency(cashFlowSavings)}</span> in 
+                  quarterly payments compared to paying 90% of your projected tax. You can invest this difference and pay the 
+                  balance when you file your return.
+                </p>
+              </div>
+            )}
+
+            <div className="border-t border-border pt-4">
+              <p className="text-xs text-muted-foreground">
+                <strong className="text-foreground">How it works:</strong> The IRS Safe Harbor rule states that if you pay at least 
+                100% of your prior year's tax (110% if AGI exceeded $150,000), you cannot be penalized for underpayment—regardless 
+                of how much you actually owe when you file.
+              </p>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Collapsible>
+    </Card>
+  );
+}
+
 export default function TaxCalculator() {
-  const [filingStatus, setFilingStatus] = useState<FilingStatus>('single');
-  const [priorYearTax, setPriorYearTax] = useState('');
-  const [priorYearAGI, setPriorYearAGI] = useState('');
-  const [currentYearProfit, setCurrentYearProfit] = useState('');
+  const [filingStatus, setFilingStatus] = useLocalStorage<FilingStatus>('filingStatus', 'single');
+  const [priorYearTax, setPriorYearTax] = useLocalStorage('priorYearTax', '');
+  const [priorYearAGI, setPriorYearAGI] = useLocalStorage('priorYearAGI', '');
+  const [currentYearProfit, setCurrentYearProfit] = useLocalStorage('currentYearProfit', '');
+
+  const handleClearAll = useCallback(() => {
+    clearTaxCalculatorStorage();
+    setFilingStatus('single');
+    setPriorYearTax('');
+    setPriorYearAGI('');
+    setCurrentYearProfit('');
+  }, [setFilingStatus, setPriorYearTax, setPriorYearAGI, setCurrentYearProfit]);
 
   const hasAllInputs = priorYearTax && priorYearAGI && currentYearProfit;
 
@@ -285,7 +532,7 @@ export default function TaxCalculator() {
         <header className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <Lock className="h-4 w-4" />
-            <span className="text-xs font-medium">100% Private - No Data Stored</span>
+            <span className="text-xs font-medium">100% Private - Stored Only on Your Device</span>
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold text-foreground" data-testid="text-title">
@@ -299,11 +546,29 @@ export default function TaxCalculator() {
 
         {/* Input Card */}
         <Card className="shadow-lg" data-testid="card-input">
-          <CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-4">
             <CardTitle className="flex items-center gap-2 text-lg font-medium">
               <Shield className="h-5 w-5 text-primary" />
               Tax Information
             </CardTitle>
+            {hasAllInputs && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleClearAll}
+                    className="text-muted-foreground"
+                    data-testid="button-reset"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  Clear all inputs
+                </TooltipContent>
+              </Tooltip>
+            )}
           </CardHeader>
           <CardContent className="space-y-6">
             <FilingStatusToggle value={filingStatus} onChange={setFilingStatus} />
@@ -388,6 +653,67 @@ export default function TaxCalculator() {
 
             {/* Quarterly Breakdown */}
             <QuarterlyBreakdown quarterlyAmount={result.quarterlyPayment} />
+
+            {/* Export Section */}
+            <Card data-testid="card-export">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-lg font-medium">
+                  <Download className="h-5 w-5 text-muted-foreground" />
+                  Export & Print
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Button
+                    variant="outline"
+                    className="h-auto py-4 flex flex-col items-center gap-2"
+                    onClick={() => generateTaxSummaryPDF({
+                      filingStatus,
+                      priorYearTax: parseInt(priorYearTax, 10) || 0,
+                      priorYearAGI: parseInt(priorYearAGI, 10) || 0,
+                      currentYearProfit: parseInt(currentYearProfit, 10) || 0,
+                      result,
+                    })}
+                    data-testid="button-export-summary"
+                  >
+                    <Download className="h-5 w-5" />
+                    <span className="font-medium">Download Tax Summary</span>
+                    <span className="text-xs text-muted-foreground">PDF with all calculations</span>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="h-auto py-4 flex flex-col items-center gap-2"
+                    onClick={() => generate1040ESVouchers({
+                      filingStatus,
+                      priorYearTax: parseInt(priorYearTax, 10) || 0,
+                      priorYearAGI: parseInt(priorYearAGI, 10) || 0,
+                      currentYearProfit: parseInt(currentYearProfit, 10) || 0,
+                      result,
+                    })}
+                    data-testid="button-export-vouchers"
+                  >
+                    <FileText className="h-5 w-5" />
+                    <span className="font-medium">Download Payment Vouchers</span>
+                    <span className="text-xs text-muted-foreground">Form 1040-ES for all 4 quarters</span>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Calculation Explanation */}
+            <CalculationExplanation
+              netProfit={parseInt(currentYearProfit, 10) || 0}
+              filingStatus={filingStatus}
+              priorYearTax={parseInt(priorYearTax, 10) || 0}
+              priorYearAGI={parseInt(priorYearAGI, 10) || 0}
+              result={result}
+            />
+
+            {/* Penalty Savings Comparison */}
+            <PenaltySavingsComparison
+              result={result}
+              priorYearTax={parseInt(priorYearTax, 10) || 0}
+            />
 
             {/* Tax Calculation Details */}
             <Card data-testid="card-details">
