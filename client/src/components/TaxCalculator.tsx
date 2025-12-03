@@ -805,6 +805,32 @@ export default function TaxCalculator() {
             <p className="text-sm">Enter your tax information above to see your Safe Harbor calculation</p>
           </div>
         )}
+
+        {/* Branding Footer */}
+        <footer className="mt-12 pb-8 text-center" data-testid="footer-branding">
+          <p className="text-sm text-slate-400">
+            Built by{' '}
+            <a 
+              href="https://creatoraiplaybook.co" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="underline hover:text-slate-300 transition-colors"
+              data-testid="link-playbook-media"
+            >
+              Playbook Media
+            </a>
+            . Get the full system at{' '}
+            <a 
+              href="https://creatoraiplaybook.co" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="underline hover:text-slate-300 transition-colors"
+              data-testid="link-full-system"
+            >
+              creatoraiplaybook.co
+            </a>
+          </p>
+        </footer>
       </div>
     </div>
   );

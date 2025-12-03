@@ -109,3 +109,19 @@ Preferred communication style: Simple, everyday language.
 6. **Design System**: Stripe-inspired aesthetic chosen to convey trust and professionalism essential for financial tools, documented in `design_guidelines.md`.
 
 7. **Future-Ready Infrastructure**: Database and session management infrastructure present but inactive, allowing easy opt-in feature additions without architectural changes.
+
+## Recent Changes (December 2025)
+
+### Completed Features
+- **Local Storage Persistence**: User inputs (filing status, prior year tax, prior year AGI, current year profit) persist across browser sessions using the `useLocalStorage` hook
+- **Calculation Explanation**: Collapsible 7-step breakdown showing exactly how Safe Harbor calculations work
+- **Penalty Savings Comparison**: Shows potential IRS underpayment penalties avoided by using Safe Harbor method
+- **PDF Export**: Two export options - Tax Summary PDF and IRS Form 1040-ES payment vouchers using jspdf library
+- **Branding Footer**: Footer with link to Playbook Media at creatoraiplaybook.co
+
+### Key Files
+- `client/src/components/TaxCalculator.tsx` - Main calculator component with all UI
+- `client/src/lib/taxCalculator.ts` - Pure calculation logic with 2025 tax constants
+- `client/src/lib/pdfExport.ts` - PDF generation for tax summaries and vouchers
+- `client/src/hooks/useLocalStorage.ts` - Local storage persistence hook
+- `design_guidelines.md` - Stripe-inspired FinTech design system
