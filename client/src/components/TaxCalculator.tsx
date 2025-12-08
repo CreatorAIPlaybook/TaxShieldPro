@@ -542,7 +542,7 @@ export default function TaxCalculator() {
   // Determine which card to recommend
   const isSafeHarborRecommended = result ? !result.isCurrentYearLower : false;
 
-  const handleEmailSubmit = useCallback((e: React.FormEvent) => {
+  const handleEmailSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form fields
@@ -568,8 +568,28 @@ export default function TaxCalculator() {
     setFormErrors({});
     setIsSubmitting(true);
     
-    // Log the email for future Beehiiv integration
-    console.log('Lead captured:', { firstName: firstName.trim(), email: email.trim(), timestamp: new Date().toISOString() });
+    // Subscribe to Beehiiv newsletter via backend proxy
+    let subscriptionSuccess = false;
+    try {
+      const response = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: email.trim(), 
+          firstName: firstName.trim() 
+        }),
+      });
+      
+      if (response.ok) {
+        subscriptionSuccess = true;
+        console.log('Successfully subscribed to newsletter');
+      } else {
+        console.error('Newsletter subscription failed, but continuing with PDF download');
+      }
+    } catch (error) {
+      console.error('Newsletter subscription error:', error);
+      // Continue with PDF download even if subscription fails
+    }
     
     // Generate and download the PDF
     generateLeadMagnetPDF({

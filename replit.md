@@ -119,11 +119,18 @@ Preferred communication style: Simple, everyday language.
 - **PDF Export**: Two export options - Tax Summary PDF and IRS Form 1040-ES payment vouchers using jspdf library
 - **Branding Footer**: Footer with link to Playbook Media at creatoraiplaybook.co
 
-### Lead Generation Features (New)
+### Lead Generation Features
 - **Email Capture Modal ("Soft Gate")**: Modal popup that collects first name and email before downloading the personalized tax plan PDF
 - **Lead Magnet PDF**: Professional PDF named "2025_Safe_Harbor_Plan.pdf" with personalized greeting, 4 quarterly payment deadlines, and exact dollar amounts
 - **FreshBooks Affiliate Card ("Revenue Bridge")**: High-visibility card with "Stop Guessing" headline promoting FreshBooks with "Start Free Trial" CTA
-- **Console Logging**: Collected emails are logged to console (ready for Beehiiv API integration)
+- **Beehiiv Newsletter Integration**: Backend proxy at `/api/subscribe` securely connects to Beehiiv API for newsletter subscriptions
+
+### API Routes
+- **POST /api/subscribe**: Backend proxy for Beehiiv newsletter subscriptions
+  - Request body: `{ email: string, firstName?: string }`
+  - Uses `BEEHIIV_API_KEY` and `BEEHIIV_PUB_ID` environment secrets
+  - Adds subscribers with `utm_source: "Tax_Shield_Tool"` tracking
+  - Handles duplicate subscribers (409) gracefully
 
 ### Key Files
 - `client/src/components/TaxCalculator.tsx` - Main calculator component with all UI including email modal
@@ -134,5 +141,6 @@ Preferred communication style: Simple, everyday language.
 
 ### Integration Notes
 - FreshBooks affiliate link is set to `https://www.freshbooks.com` - update with your actual affiliate URL
-- Email leads are logged to console with format: `{ firstName, email, timestamp }`
-- To connect Beehiiv: Replace `console.log` in `handleEmailSubmit` with API call
+- Beehiiv integration is fully connected via backend proxy at `/api/subscribe`
+- Required secrets: `BEEHIIV_API_KEY` and `BEEHIIV_PUB_ID` (configured in Secrets pane)
+- Subscribers are tagged with `utm_source: "Tax_Shield_Tool"` for tracking
