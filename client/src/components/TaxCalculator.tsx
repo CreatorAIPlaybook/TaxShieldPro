@@ -1,8 +1,17 @@
 import { useState, useMemo, useCallback } from 'react';
-import { Lock, Info, Shield, DollarSign, TrendingDown, Calendar, CheckCircle, RotateCcw, ChevronDown, Calculator, ShieldCheck, AlertTriangle, Download, FileText } from 'lucide-react';
+import { Lock, Info, Shield, DollarSign, TrendingDown, Calendar, CheckCircle, RotateCcw, ChevronDown, Calculator, ShieldCheck, AlertTriangle, Download, FileText, ExternalLink, Mail } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   Tooltip,
   TooltipContent,
@@ -23,7 +32,7 @@ import {
   TAX_CONSTANTS_2025,
 } from '@/lib/taxCalculator';
 import { useLocalStorage, clearTaxCalculatorStorage } from '@/hooks/useLocalStorage';
-import { generateTaxSummaryPDF, generate1040ESVouchers } from '@/lib/pdfExport';
+import { generateTaxSummaryPDF, generate1040ESVouchers, generateLeadMagnetPDF } from '@/lib/pdfExport';
 
 interface CurrencyInputProps {
   id: string;
@@ -479,6 +488,12 @@ export default function TaxCalculator() {
   const [priorYearTax, setPriorYearTax] = useLocalStorage('priorYearTax', '');
   const [priorYearAGI, setPriorYearAGI] = useLocalStorage('priorYearAGI', '');
   const [currentYearProfit, setCurrentYearProfit] = useLocalStorage('currentYearProfit', '');
+  
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [email, setEmail] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formErrors, setFormErrors] = useState<{ firstName?: string; email?: string }>({});
 
   const handleClearAll = useCallback(() => {
     clearTaxCalculatorStorage();
@@ -486,6 +501,8 @@ export default function TaxCalculator() {
     setPriorYearTax('');
     setPriorYearAGI('');
     setCurrentYearProfit('');
+    setIsEmailModalOpen(false);
+    setFormErrors({});
   }, [setFilingStatus, setPriorYearTax, setPriorYearAGI, setCurrentYearProfit]);
 
   const hasAllInputs = priorYearTax && priorYearAGI && currentYearProfit;
@@ -524,6 +541,55 @@ export default function TaxCalculator() {
 
   // Determine which card to recommend
   const isSafeHarborRecommended = result ? !result.isCurrentYearLower : false;
+
+  const handleEmailSubmit = useCallback((e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form fields
+    const errors: { firstName?: string; email?: string } = {};
+    
+    if (!firstName.trim()) {
+      errors.firstName = 'Please enter your first name';
+    }
+    
+    if (!email.trim()) {
+      errors.email = 'Please enter your email address';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errors.email = 'Please enter a valid email address';
+    }
+    
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    
+    if (!result) return;
+    
+    setFormErrors({});
+    setIsSubmitting(true);
+    
+    // Log the email for future Beehiiv integration
+    console.log('Lead captured:', { firstName: firstName.trim(), email: email.trim(), timestamp: new Date().toISOString() });
+    
+    // Generate and download the PDF
+    generateLeadMagnetPDF({
+      filingStatus,
+      priorYearTax: parseInt(priorYearTax, 10) || 0,
+      priorYearAGI: parseInt(priorYearAGI, 10) || 0,
+      currentYearProfit: parseInt(currentYearProfit, 10) || 0,
+      result,
+      firstName: firstName.trim(),
+      email: email.trim(),
+    });
+    
+    // Reset modal state
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setIsEmailModalOpen(false);
+      setFirstName('');
+      setEmail('');
+    }, 500);
+  }, [firstName, email, result, filingStatus, priorYearTax, priorYearAGI, currentYearProfit]);
 
   return (
     <div className="min-h-screen bg-background py-8 md:py-12 px-4">
@@ -654,12 +720,63 @@ export default function TaxCalculator() {
             {/* Quarterly Breakdown */}
             <QuarterlyBreakdown quarterlyAmount={result.quarterlyPayment} />
 
+            {/* Download Report CTA */}
+            <Card className="border-2 border-primary/20 bg-primary/5" data-testid="card-download-report">
+              <CardContent className="pt-6 text-center space-y-4">
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold text-foreground">Get Your Personalized Tax Plan</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Download a professional PDF with your exact quarterly payment amounts and IRS deadlines
+                  </p>
+                </div>
+                <Button
+                  size="lg"
+                  className="w-full md:w-auto px-8"
+                  onClick={() => setIsEmailModalOpen(true)}
+                  data-testid="button-download-report"
+                >
+                  <Download className="h-5 w-5 mr-2" />
+                  Download Your 2025 Tax Plan
+                </Button>
+              </CardContent>
+            </Card>
+
+            {/* FreshBooks Affiliate Card */}
+            <Card className="border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800" data-testid="card-freshbooks-affiliate">
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
+                  <div className="flex-1 space-y-2">
+                    <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                      Stop Guessing
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      This calculator is for estimation. To automatically track your write-offs and lower your tax bill in real-time, we recommend FreshBooks.
+                    </p>
+                  </div>
+                  <Button
+                    asChild
+                    className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 text-white"
+                    data-testid="button-freshbooks-cta"
+                  >
+                    <a 
+                      href="https://www.freshbooks.com" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                    >
+                      Start Free Trial (No Credit Card)
+                      <ExternalLink className="h-4 w-4 ml-2" />
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Export Section */}
             <Card data-testid="card-export">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-medium">
                   <Download className="h-5 w-5 text-muted-foreground" />
-                  Export & Print
+                  More Export Options
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -832,6 +949,83 @@ export default function TaxCalculator() {
           </p>
         </footer>
       </div>
+
+      {/* Email Capture Modal */}
+      <Dialog open={isEmailModalOpen} onOpenChange={(open) => {
+        setIsEmailModalOpen(open);
+        if (!open) {
+          setFormErrors({});
+        }
+      }}>
+        <DialogContent className="sm:max-w-md" data-testid="modal-email-capture">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Get Your Free Tax Plan
+            </DialogTitle>
+            <DialogDescription>
+              Enter your details below to download your personalized 2025 Safe Harbor payment schedule.
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="firstName">First Name</Label>
+              <Input
+                id="firstName"
+                placeholder="John"
+                value={firstName}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  if (formErrors.firstName) setFormErrors(prev => ({ ...prev, firstName: undefined }));
+                }}
+                className={formErrors.firstName ? 'border-red-500' : ''}
+                data-testid="input-first-name"
+              />
+              {formErrors.firstName && (
+                <p className="text-xs text-red-500" data-testid="error-first-name">{formErrors.firstName}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email Address</Label>
+              <Input
+                id="email"
+                type="email"
+                placeholder="john@example.com"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (formErrors.email) setFormErrors(prev => ({ ...prev, email: undefined }));
+                }}
+                className={formErrors.email ? 'border-red-500' : ''}
+                data-testid="input-email"
+              />
+              {formErrors.email && (
+                <p className="text-xs text-red-500" data-testid="error-email">{formErrors.email}</p>
+              )}
+            </div>
+            <div className="flex flex-col gap-3">
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isSubmitting}
+                data-testid="button-submit-email"
+              >
+                {isSubmitting ? (
+                  <>Generating PDF...</>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4 mr-2" />
+                    Download My Tax Plan
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">
+                We respect your privacy. No spam, ever.
+              </p>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

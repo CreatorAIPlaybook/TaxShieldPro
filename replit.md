@@ -119,9 +119,20 @@ Preferred communication style: Simple, everyday language.
 - **PDF Export**: Two export options - Tax Summary PDF and IRS Form 1040-ES payment vouchers using jspdf library
 - **Branding Footer**: Footer with link to Playbook Media at creatoraiplaybook.co
 
+### Lead Generation Features (New)
+- **Email Capture Modal ("Soft Gate")**: Modal popup that collects first name and email before downloading the personalized tax plan PDF
+- **Lead Magnet PDF**: Professional PDF named "2025_Safe_Harbor_Plan.pdf" with personalized greeting, 4 quarterly payment deadlines, and exact dollar amounts
+- **FreshBooks Affiliate Card ("Revenue Bridge")**: High-visibility card with "Stop Guessing" headline promoting FreshBooks with "Start Free Trial" CTA
+- **Console Logging**: Collected emails are logged to console (ready for Beehiiv API integration)
+
 ### Key Files
-- `client/src/components/TaxCalculator.tsx` - Main calculator component with all UI
+- `client/src/components/TaxCalculator.tsx` - Main calculator component with all UI including email modal
 - `client/src/lib/taxCalculator.ts` - Pure calculation logic with 2025 tax constants
-- `client/src/lib/pdfExport.ts` - PDF generation for tax summaries and vouchers
+- `client/src/lib/pdfExport.ts` - PDF generation including lead magnet PDF with personalized content
 - `client/src/hooks/useLocalStorage.ts` - Local storage persistence hook
 - `design_guidelines.md` - Stripe-inspired FinTech design system
+
+### Integration Notes
+- FreshBooks affiliate link is set to `https://www.freshbooks.com` - update with your actual affiliate URL
+- Email leads are logged to console with format: `{ firstName, email, timestamp }`
+- To connect Beehiiv: Replace `console.log` in `handleEmailSubmit` with API call
