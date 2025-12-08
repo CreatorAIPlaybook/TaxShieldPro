@@ -363,24 +363,24 @@ export function generateLeadMagnetPDF(data: LeadMagnetPDFData): void {
   doc.text('By following this plan, you\'ll be protected from IRS underpayment penalties.', 20, y);
   y += 15;
   
-  // Increased table height from 75 to 90 to add more breathing room for Total row
+  // Compact table layout to fit on single page
   doc.setFillColor(248, 250, 252);
-  doc.roundedRect(15, y - 5, 180, 90, 5, 5, 'F');
+  doc.roundedRect(15, y - 5, 180, 75, 5, 5, 'F');
   doc.setDrawColor(226, 232, 240);
-  doc.roundedRect(15, y - 5, 180, 90, 5, 5, 'S');
+  doc.roundedRect(15, y - 5, 180, 75, 5, 5, 'S');
   
   y += 5;
-  doc.setFontSize(14);
+  doc.setFontSize(13);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59);
   doc.text('Your Quarterly Payment Schedule', 105, y, { align: 'center' });
-  y += 12;
+  y += 10;
   
   QUARTERS.forEach((quarter, index) => {
     doc.setFillColor(16, 185, 129);
     doc.circle(30, y - 2, 3, 'F');
     
-    doc.setFontSize(12);
+    doc.setFontSize(11);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(30, 41, 59);
     doc.text(`${quarter.label}:`, 40, y);
@@ -393,22 +393,22 @@ export function generateLeadMagnetPDF(data: LeadMagnetPDFData): void {
     doc.setTextColor(16, 185, 129);
     doc.text(formatCurrency(result.quarterlyPayment), 180, y, { align: 'right' });
     
-    y += 12;
+    y += 10;
   });
   
-  // Added extra spacing before the divider line (20px breathing room)
-  y += 10;
+  // Spacing before the divider line
+  y += 5;
   doc.setDrawColor(16, 185, 129);
   doc.setLineWidth(0.5);
   doc.line(40, y - 5, 170, y - 5);
   
-  doc.setFontSize(13);
+  doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(30, 41, 59);
   doc.text('Total Annual Payments:', 40, y);
   doc.setTextColor(16, 185, 129);
   doc.text(formatCurrency(result.requiredAnnualPayment), 180, y, { align: 'right' });
-  y += 25;
+  y += 15;
   
   doc.setFillColor(254, 243, 199);
   doc.roundedRect(15, y - 5, 180, 30, 3, 3, 'F');
@@ -451,12 +451,12 @@ export function generateLeadMagnetPDF(data: LeadMagnetPDFData): void {
     y += 6;
   });
   
-  // Add 20mm breathing room between table/content and FreshBooks CTA
-  y += 20;
+  // Add 10mm breathing room between content and FreshBooks CTA
+  y += 10;
   
   // Get page dimensions for collision detection
   const pageHeight = doc.internal.pageSize.getHeight();
-  const footerSafetyZone = pageHeight - 40; // 40mm from bottom is the safety threshold
+  const footerSafetyZone = pageHeight - 25; // 25mm from bottom is the safety threshold
   
   // Collision detection: if content would overlap with footer, add new page
   if (y > footerSafetyZone) {
