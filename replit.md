@@ -144,3 +144,25 @@ Preferred communication style: Simple, everyday language.
 - Beehiiv integration is fully connected via backend proxy at `/api/subscribe`
 - Required secrets: `BEEHIIV_API_KEY` and `BEEHIIV_PUB_ID` (configured in Secrets pane)
 - Subscribers are tagged with `utm_source: "Tax_Shield_Tool"` for tracking
+
+## Vercel Deployment
+
+### Configuration
+The app is configured for Vercel deployment with:
+- `vercel.json` - Deployment configuration
+- `api/subscribe.ts` - Serverless function for Beehiiv API proxy
+
+### Deployment Steps
+1. Connect your GitHub repo to Vercel
+2. Set environment variables in Vercel dashboard:
+   - `BEEHIIV_API_KEY` - Your Beehiiv API key
+   - `BEEHIIV_PUB_ID` - Your Beehiiv publication ID
+3. Deploy - Vercel will:
+   - Build the frontend with `npm run build`
+   - Serve static files from `dist/public`
+   - Deploy API routes as serverless functions
+
+### Architecture on Vercel
+- Frontend: Static files served from CDN
+- API: `/api/subscribe` runs as a Node.js serverless function
+- No Express server needed - Vercel handles routing
