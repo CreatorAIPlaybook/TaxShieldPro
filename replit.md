@@ -149,9 +149,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Configuration
 The app is configured for Vercel deployment with:
-- `vercel.json` - Deployment configuration with rewrites
-- `api/index.ts` - Serverless function adapter that exports the Express app
-- `server/index.ts` - Dual-mode server (development with Vite, production for serverless)
+- `vercel.json` - Minimal configuration with SPA rewrite
+- `api/subscribe.ts` - Native Vercel serverless function for Beehiiv API
+- `server/index.ts` - Development server only (not used in Vercel production)
 
 ### Deployment Steps
 1. Connect your GitHub repo to Vercel
@@ -161,17 +161,17 @@ The app is configured for Vercel deployment with:
 3. Deploy - Vercel will:
    - Build the frontend with `npm run build`
    - Serve static files from `dist/public` via CDN
-   - Deploy API routes as serverless functions
+   - Deploy `api/subscribe.ts` as a native serverless function
 
 ### Architecture on Vercel
-- **Frontend**: Static files served from Vercel's CDN (not Express)
-- **API**: `/api/subscribe` runs as a Node.js serverless function via `api/index.ts`
-- **No Express static serving**: Vercel handles all frontend asset delivery
+- **Frontend**: Static files served from Vercel's CDN
+- **API**: `/api/subscribe` handled by native Vercel serverless function (`api/subscribe.ts`)
+- **No Express needed**: Vercel automatically routes `/api/*` to files in the `api/` directory
 
 ### Development vs Production
-- **Development** (`NODE_ENV !== 'production'`): Full Express server with Vite HMR, httpServer.listen()
-- **Production** (`NODE_ENV === 'production'`): Routes registered synchronously, no server listening (Vercel invokes as serverless)
+- **Development**: Full Express server with Vite HMR via `server/index.ts`
+- **Production (Vercel)**: Native serverless function at `api/subscribe.ts` with CORS headers
 
-This dual-mode approach ensures:
-- Development works with hot reload and full debugging
-- Production is optimized for Vercel's serverless model (no httpServer, synchronous route registration)
+### Key Files
+- `api/subscribe.ts` - Native Vercel serverless handler with CORS support
+- `vercel.json` - Simple SPA rewrite: `/(.*) → /index.html`
