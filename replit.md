@@ -149,8 +149,9 @@ Preferred communication style: Simple, everyday language.
 
 ### Configuration
 The app is configured for Vercel deployment with:
-- `vercel.json` - Deployment configuration
-- `api/subscribe.ts` - Serverless function for Beehiiv API proxy
+- `vercel.json` - Deployment configuration with rewrites
+- `api/index.ts` - Serverless function adapter that exports the Express app
+- `server/index.ts` - Dual-mode server (development with Vite, production for serverless)
 
 ### Deployment Steps
 1. Connect your GitHub repo to Vercel
@@ -159,10 +160,18 @@ The app is configured for Vercel deployment with:
    - `BEEHIIV_PUB_ID` - Your Beehiiv publication ID
 3. Deploy - Vercel will:
    - Build the frontend with `npm run build`
-   - Serve static files from `dist/public`
+   - Serve static files from `dist/public` via CDN
    - Deploy API routes as serverless functions
 
 ### Architecture on Vercel
-- Frontend: Static files served from CDN
-- API: `/api/subscribe` runs as a Node.js serverless function
-- No Express server needed - Vercel handles routing
+- **Frontend**: Static files served from Vercel's CDN (not Express)
+- **API**: `/api/subscribe` runs as a Node.js serverless function via `api/index.ts`
+- **No Express static serving**: Vercel handles all frontend asset delivery
+
+### Development vs Production
+- **Development** (`NODE_ENV !== 'production'`): Full Express server with Vite HMR, httpServer.listen()
+- **Production** (`NODE_ENV === 'production'`): Routes registered synchronously, no server listening (Vercel invokes as serverless)
+
+This dual-mode approach ensures:
+- Development works with hot reload and full debugging
+- Production is optimized for Vercel's serverless model (no httpServer, synchronous route registration)
