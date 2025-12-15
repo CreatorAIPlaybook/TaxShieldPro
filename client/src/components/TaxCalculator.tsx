@@ -13,10 +13,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+  Popover,
+  PopoverTrigger,
+  PopoverContentInstant,
+} from '@/components/ui/popover';
 import {
   Collapsible,
   CollapsibleContent,
@@ -74,8 +74,8 @@ function CurrencyInput({ id, label, tooltip, value, onChange, placeholder }: Cur
     <div className="space-y-2">
       <label htmlFor={id} className="flex items-center gap-2 text-sm font-medium text-foreground">
         {label}
-        <Tooltip>
-          <TooltipTrigger asChild>
+        <Popover>
+          <PopoverTrigger asChild>
             <button
               type="button"
               className="text-muted-foreground hover:text-foreground transition-colors"
@@ -83,14 +83,15 @@ function CurrencyInput({ id, label, tooltip, value, onChange, placeholder }: Cur
             >
               <Info className="h-4 w-4" />
             </button>
-          </TooltipTrigger>
-          <TooltipContent
+          </PopoverTrigger>
+          <PopoverContentInstant
             side="top"
-            className="max-w-xs bg-foreground text-background text-xs p-3 rounded-md"
+            className="max-w-xs bg-foreground text-background text-xs p-3"
+            onOpenAutoFocus={(e) => e.preventDefault()}
           >
             {tooltip}
-          </TooltipContent>
-        </Tooltip>
+          </PopoverContentInstant>
+        </Popover>
       </label>
       <div className="relative">
         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground text-base">
@@ -640,22 +641,16 @@ export default function TaxCalculator() {
               Tax Information
             </CardTitle>
             {hasAllInputs && (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={handleClearAll}
-                    className="text-muted-foreground"
-                    data-testid="button-reset"
-                  >
-                    <RotateCcw className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  Clear all inputs
-                </TooltipContent>
-              </Tooltip>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleClearAll}
+                className="text-muted-foreground"
+                data-testid="button-reset"
+                aria-label="Clear all inputs"
+              >
+                <RotateCcw className="h-4 w-4" />
+              </Button>
             )}
           </CardHeader>
           <CardContent className="space-y-6">
