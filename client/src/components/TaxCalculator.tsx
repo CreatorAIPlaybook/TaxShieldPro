@@ -167,24 +167,26 @@ function ResultCard({ title, subtitle, amount, breakdown, isRecommended, icon }:
     : '';
 
   return (
-    <Card className={`relative ${baseClasses}`} data-testid={`card-${isRecommended ? 'safe-harbor' : 'current-year'}`}>
-      {isRecommended && (
-        <div className="absolute top-4 right-4">
-          <Badge 
-            className="bg-[hsl(var(--emerald-600))] text-white border-0 px-3 py-1 text-xs font-medium no-default-hover-elevate no-default-active-elevate"
-            data-testid="badge-recommended"
-          >
-            <CheckCircle className="h-3 w-3 mr-1" />
-            Recommended
-          </Badge>
-        </div>
-      )}
+    <Card className={baseClasses} data-testid={`card-${isRecommended ? 'safe-harbor' : 'current-year'}`}>
       <CardHeader className="pb-2">
-        <div className="flex items-center gap-2 text-muted-foreground mb-1">
-          {icon}
-          <span className="text-xs uppercase tracking-wide font-medium">{subtitle}</span>
+        <div className="flex flex-row justify-between items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 text-muted-foreground mb-1">
+              {icon}
+              <span className="text-xs uppercase tracking-wide font-medium">{subtitle}</span>
+            </div>
+            <CardTitle className="text-sm font-medium text-foreground">{title}</CardTitle>
+          </div>
+          {isRecommended && (
+            <Badge 
+              className="bg-[hsl(var(--emerald-600))] text-white border-0 px-3 py-1 text-xs font-medium no-default-hover-elevate no-default-active-elevate flex-shrink-0"
+              data-testid="badge-recommended"
+            >
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Recommended
+            </Badge>
+          )}
         </div>
-        <CardTitle className="text-sm font-medium text-foreground">{title}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="mb-4">
