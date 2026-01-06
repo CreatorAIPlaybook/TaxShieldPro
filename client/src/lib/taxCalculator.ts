@@ -1,13 +1,13 @@
-// 2026 Tax Year Constants - Updated for Annual Rollover
-export const TAX_CONSTANTS_2026 = {
-  // Standard Deductions (increased for 2026)
+// 2025 Tax Year Constants - EXACT values from specification
+export const TAX_CONSTANTS_2025 = {
+  // Standard Deductions
   standardDeduction: {
-    single: 16100,
-    married: 32200,
+    single: 15750,
+    married: 31500,
   },
   
   // Self-Employment Tax
-  socialSecurityWageBase: 184500, // Increased from 176100
+  socialSecurityWageBase: 176100,
   socialSecurityRate: 0.124, // 12.4%
   medicareRate: 0.029, // 2.9%
   additionalMedicareRate: 0.009, // 0.9%
@@ -26,25 +26,25 @@ export const TAX_CONSTANTS_2026 = {
   currentYearAvoidanceMultiplier: 0.9, // 90%
 } as const;
 
-// 2026 Income Tax Brackets (adjusted for inflation)
-export const TAX_BRACKETS_2026 = {
+// 2025 Income Tax Brackets
+export const TAX_BRACKETS_2025 = {
   single: [
-    { min: 0, max: 12250, rate: 0.10 },
-    { min: 12251, max: 49850, rate: 0.12 },
-    { min: 49851, max: 106350, rate: 0.22 },
-    { min: 106351, max: 203000, rate: 0.24 },
-    { min: 203001, max: 257500, rate: 0.32 },
-    { min: 257501, max: 644050, rate: 0.35 },
-    { min: 644051, max: Infinity, rate: 0.37 },
+    { min: 0, max: 11925, rate: 0.10 },
+    { min: 11926, max: 48475, rate: 0.12 },
+    { min: 48476, max: 103350, rate: 0.22 },
+    { min: 103351, max: 197300, rate: 0.24 },
+    { min: 197301, max: 250525, rate: 0.32 },
+    { min: 250526, max: 626350, rate: 0.35 },
+    { min: 626351, max: Infinity, rate: 0.37 },
   ],
   married: [
-    { min: 0, max: 24500, rate: 0.10 },
-    { min: 24501, max: 99700, rate: 0.12 },
-    { min: 99701, max: 212700, rate: 0.22 },
-    { min: 212701, max: 406000, rate: 0.24 },
-    { min: 406001, max: 515000, rate: 0.32 },
-    { min: 515001, max: 773000, rate: 0.35 },
-    { min: 773001, max: Infinity, rate: 0.37 },
+    { min: 0, max: 23850, rate: 0.10 },
+    { min: 23851, max: 96950, rate: 0.12 },
+    { min: 96951, max: 206700, rate: 0.22 },
+    { min: 206701, max: 394600, rate: 0.24 },
+    { min: 394601, max: 501050, rate: 0.32 },
+    { min: 501051, max: 751600, rate: 0.35 },
+    { min: 751601, max: Infinity, rate: 0.37 },
   ],
 } as const;
 
@@ -102,21 +102,21 @@ export function calculateSelfEmploymentTax(
   const seTaxableEarnings = netProfit * 0.9235;
   
   // Social Security Tax (12.4% on earnings up to wage base)
-  const socialSecurityTaxable = Math.min(seTaxableEarnings, TAX_CONSTANTS_2026.socialSecurityWageBase);
-  const socialSecurityTax = socialSecurityTaxable * TAX_CONSTANTS_2026.socialSecurityRate;
+  const socialSecurityTaxable = Math.min(seTaxableEarnings, TAX_CONSTANTS_2025.socialSecurityWageBase);
+  const socialSecurityTax = socialSecurityTaxable * TAX_CONSTANTS_2025.socialSecurityRate;
   
   // Medicare Tax (2.9% on all earnings)
-  const medicareTax = seTaxableEarnings * TAX_CONSTANTS_2026.medicareRate;
+  const medicareTax = seTaxableEarnings * TAX_CONSTANTS_2025.medicareRate;
   
   // Additional Medicare Tax (0.9% on earnings over threshold)
-  const additionalMedicareThreshold = TAX_CONSTANTS_2026.additionalMedicareThreshold[filingStatus];
+  const additionalMedicareThreshold = TAX_CONSTANTS_2025.additionalMedicareThreshold[filingStatus];
   const additionalMedicareTaxable = Math.max(0, seTaxableEarnings - additionalMedicareThreshold);
-  const additionalMedicareTax = additionalMedicareTaxable * TAX_CONSTANTS_2026.additionalMedicareRate;
+  const additionalMedicareTax = additionalMedicareTaxable * TAX_CONSTANTS_2025.additionalMedicareRate;
   
   const totalSETax = socialSecurityTax + medicareTax + additionalMedicareTax;
   
   // Half of SE tax is deductible from income
-  const seTaxDeduction = totalSETax * TAX_CONSTANTS_2026.seTaxDeductionRate;
+  const seTaxDeduction = totalSETax * TAX_CONSTANTS_2025.seTaxDeductionRate;
   
   return {
     socialSecurityTax,
@@ -135,8 +135,8 @@ export function calculateIncomeTax(
   seTaxDeduction: number,
   filingStatus: FilingStatus
 ): IncomeTaxBreakdown {
-  const standardDeduction = TAX_CONSTANTS_2026.standardDeduction[filingStatus];
-  const brackets = TAX_BRACKETS_2026[filingStatus];
+  const standardDeduction = TAX_CONSTANTS_2025.standardDeduction[filingStatus];
+  const brackets = TAX_BRACKETS_2025[filingStatus];
   
   // AGI = Net Profit - Half of SE Tax
   const agi = netProfit - seTaxDeduction;
@@ -181,9 +181,9 @@ export function calculateSafeHarbor(
   priorYearTax: number,
   priorYearAGI: number
 ): { safeHarborMinimum: number; multiplier: number } {
-  const multiplier = priorYearAGI > TAX_CONSTANTS_2026.safeHarborHighIncomeThreshold
-    ? TAX_CONSTANTS_2026.safeHarborHighIncomeMultiplier
-    : TAX_CONSTANTS_2026.safeHarborStandardMultiplier;
+  const multiplier = priorYearAGI > TAX_CONSTANTS_2025.safeHarborHighIncomeThreshold
+    ? TAX_CONSTANTS_2025.safeHarborHighIncomeMultiplier
+    : TAX_CONSTANTS_2025.safeHarborStandardMultiplier;
   
   return {
     safeHarborMinimum: priorYearTax * multiplier,
@@ -211,7 +211,7 @@ export function calculateTaxes(inputs: TaxInputs): TaxCalculationResult {
   const currentYearTotalTax = selfEmploymentTax.totalSETax + incomeTax.federalIncomeTax;
   
   // Current Year Avoidance Minimum (90% of projected tax)
-  const currentYearAvoidanceMinimum = currentYearTotalTax * TAX_CONSTANTS_2026.currentYearAvoidanceMultiplier;
+  const currentYearAvoidanceMinimum = currentYearTotalTax * TAX_CONSTANTS_2025.currentYearAvoidanceMultiplier;
   
   // Safe Harbor Calculation
   const { safeHarborMinimum, multiplier: safeHarborMultiplier } = calculateSafeHarbor(

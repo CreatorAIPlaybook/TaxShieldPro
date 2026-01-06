@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import { formatCurrency, formatPercentage, type TaxCalculationResult, type FilingStatus, TAX_CONSTANTS_2026 } from './taxCalculator';
+import { formatCurrency, formatPercentage, type TaxCalculationResult, type FilingStatus, TAX_CONSTANTS_2025 } from './taxCalculator';
 
 interface PDFExportData {
   filingStatus: FilingStatus;
@@ -10,16 +10,16 @@ interface PDFExportData {
 }
 
 const QUARTERS = [
-  { label: 'Q1', date: 'April 15, 2026' },
-  { label: 'Q2', date: 'June 15, 2026' },
-  { label: 'Q3', date: 'September 15, 2026' },
-  { label: 'Q4', date: 'January 15, 2027' },
+  { label: 'Q1', date: 'April 15, 2025' },
+  { label: 'Q2', date: 'June 16, 2025' },
+  { label: 'Q3', date: 'September 15, 2025' },
+  { label: 'Q4', date: 'January 15, 2026' },
 ];
 
 function addPageHeader(doc: jsPDF, pageNum: number, totalPages: number) {
   doc.setFontSize(8);
   doc.setTextColor(128, 128, 128);
-  doc.text('Safe Harbor 2026 Tax Shield', 20, 15);
+  doc.text('Safe Harbor 2025 Tax Shield', 20, 15);
   doc.text(`Page ${pageNum} of ${totalPages}`, 190, 15, { align: 'right' });
   doc.setTextColor(0, 0, 0);
 }
@@ -57,7 +57,7 @@ export function generateTaxSummaryPDF(data: PDFExportData): void {
   doc.setFontSize(24);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(15, 23, 42);
-  doc.text('2026 Estimated Tax Summary', 20, y);
+  doc.text('2025 Estimated Tax Summary', 20, y);
   y += 10;
   
   doc.setFontSize(10);
@@ -71,9 +71,9 @@ export function generateTaxSummaryPDF(data: PDFExportData): void {
   
   y = addSectionHeader(doc, y, 'Your Information');
   y = addLabelValue(doc, y, 'Filing Status', filingStatus === 'married' ? 'Married Filing Jointly' : 'Single');
-  y = addLabelValue(doc, y, '2025 Total Tax Liability', formatCurrency(priorYearTax));
-  y = addLabelValue(doc, y, '2025 Adjusted Gross Income', formatCurrency(priorYearAGI));
-  y = addLabelValue(doc, y, '2026 Estimated Net Profit', formatCurrency(currentYearProfit));
+  y = addLabelValue(doc, y, '2024 Total Tax Liability', formatCurrency(priorYearTax));
+  y = addLabelValue(doc, y, '2024 Adjusted Gross Income', formatCurrency(priorYearAGI));
+  y = addLabelValue(doc, y, '2025 Estimated Net Profit', formatCurrency(currentYearProfit));
   y += 8;
   
   y = addDivider(doc, y);
@@ -115,10 +115,10 @@ export function generateTaxSummaryPDF(data: PDFExportData): void {
   
   y = addSectionHeader(doc, y, 'Safe Harbor Calculation');
   
-  const isHighIncome = priorYearAGI > TAX_CONSTANTS_2026.safeHarborHighIncomeThreshold;
+  const isHighIncome = priorYearAGI > TAX_CONSTANTS_2025.safeHarborHighIncomeThreshold;
   const multiplierText = isHighIncome ? '110% (AGI over $150,000)' : '100% (AGI $150,000 or less)';
   
-  y = addLabelValue(doc, y, '2025 Tax Liability', formatCurrency(priorYearTax));
+  y = addLabelValue(doc, y, '2024 Tax Liability', formatCurrency(priorYearTax));
   y = addLabelValue(doc, y, 'Safe Harbor Multiplier', multiplierText);
   
   doc.setFillColor(236, 253, 245);
@@ -137,7 +137,7 @@ export function generateTaxSummaryPDF(data: PDFExportData): void {
   y = addSectionHeader(doc, y, 'Current Year Projection (90% Method)');
   y = addLabelValue(doc, y, 'Self-Employment Tax', formatCurrency(result.selfEmploymentTax.totalSETax));
   y = addLabelValue(doc, y, 'Federal Income Tax', formatCurrency(result.incomeTax.federalIncomeTax));
-  y = addLabelValue(doc, y, 'Total 2026 Projected Tax', formatCurrency(result.currentYearTotalTax));
+  y = addLabelValue(doc, y, 'Total 2025 Projected Tax', formatCurrency(result.currentYearTotalTax));
   
   doc.setFillColor(248, 250, 252);
   doc.roundedRect(20, y, 170, 12, 2, 2, 'F');
@@ -185,7 +185,7 @@ export function generateTaxSummaryPDF(data: PDFExportData): void {
   
   addPageHeader(doc, 1, 1);
   
-  doc.save('safe-harbor-2026-tax-summary.pdf');
+  doc.save('safe-harbor-2025-tax-summary.pdf');
 }
 
 export function generate1040ESVouchers(data: PDFExportData): void {
@@ -220,7 +220,7 @@ export function generate1040ESVouchers(data: PDFExportData): void {
     doc.setFontSize(10);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
-    doc.text(`${quarter.label} - 2026 Estimated Tax`, 105, y, { align: 'center' });
+    doc.text(`${quarter.label} - 2025 Estimated Tax`, 105, y, { align: 'center' });
     y += 10;
     
     doc.setDrawColor(226, 232, 240);
@@ -284,7 +284,7 @@ export function generate1040ESVouchers(data: PDFExportData): void {
       '1. Fill in your name, Social Security Number, and address above.',
       '2. Write the amount shown on your check.',
       '3. Make check payable to "United States Treasury".',
-      '4. Write your SSN and "2026 Form 1040-ES" on your check.',
+      '4. Write your SSN and "2025 Form 1040-ES" on your check.',
       '5. Mail to the IRS address for your state (see IRS.gov for addresses).',
       '',
       'Alternatively, pay online at IRS.gov/Payments using:',
@@ -321,7 +321,7 @@ export function generate1040ESVouchers(data: PDFExportData): void {
     doc.text('This is a sample voucher for reference. Official IRS Form 1040-ES is available at IRS.gov.', 105, 285, { align: 'center' });
   });
   
-  doc.save('2026-form-1040-es-vouchers.pdf');
+  doc.save('2025-form-1040-es-vouchers.pdf');
 }
 
 interface LeadMagnetPDFData extends PDFExportData {
@@ -332,7 +332,7 @@ interface LeadMagnetPDFData extends PDFExportData {
 export function generateLeadMagnetPDF(data: LeadMagnetPDFData): void {
   const doc = new jsPDF();
   const { firstName, result, priorYearAGI } = data;
-  const isHighIncome = priorYearAGI > TAX_CONSTANTS_2026.safeHarborHighIncomeThreshold;
+  const isHighIncome = priorYearAGI > TAX_CONSTANTS_2025.safeHarborHighIncomeThreshold;
   
   let y = 30;
   
@@ -342,7 +342,7 @@ export function generateLeadMagnetPDF(data: LeadMagnetPDFData): void {
   doc.setFontSize(28);
   doc.setFont('helvetica', 'bold');
   doc.setTextColor(255, 255, 255);
-  doc.text('Your 2026 Safe Harbor Plan', 105, 25, { align: 'center' });
+  doc.text('Your 2025 Safe Harbor Plan', 105, 25, { align: 'center' });
   
   doc.setFontSize(12);
   doc.setFont('helvetica', 'normal');
@@ -358,7 +358,7 @@ export function generateLeadMagnetPDF(data: LeadMagnetPDFData): void {
   
   doc.setFontSize(11);
   doc.setTextColor(71, 85, 105);
-  doc.text('Here is your personalized 2026 estimated tax payment schedule using the IRS Safe Harbor method.', 20, y);
+  doc.text('Here is your personalized 2025 estimated tax payment schedule using the IRS Safe Harbor method.', 20, y);
   y += 6;
   doc.text('By following this plan, you\'ll be protected from IRS underpayment penalties.', 20, y);
   y += 15;
@@ -423,8 +423,8 @@ export function generateLeadMagnetPDF(data: LeadMagnetPDFData): void {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
   const safeHarborExplanation = isHighIncome 
-    ? 'Since your 2025 AGI exceeded $150,000, you qualify by paying 110% of last year\'s tax.'
-    : 'Since your 2025 AGI was $150,000 or less, you qualify by paying 100% of last year\'s tax.';
+    ? 'Since your 2024 AGI exceeded $150,000, you qualify by paying 110% of last year\'s tax.'
+    : 'Since your 2024 AGI was $150,000 or less, you qualify by paying 100% of last year\'s tax.';
   doc.text(safeHarborExplanation, 20, y);
   y += 5;
   doc.text('This protects you from penalties regardless of how much you actually owe when you file.', 20, y);
@@ -496,9 +496,9 @@ export function generateLeadMagnetPDF(data: LeadMagnetPDFData): void {
   
   doc.setFontSize(8);
   doc.setTextColor(148, 163, 184);
-  doc.text('Generated by Safe Harbor 2026 Tax Shield | creatoraiplaybook.co', 105, footerY - 10, { align: 'center' });
+  doc.text('Generated by Safe Harbor 2025 Tax Shield | creatoraiplaybook.co', 105, footerY - 10, { align: 'center' });
   doc.text('This document is for informational purposes only and does not constitute tax advice.', 105, footerY - 5, { align: 'center' });
   doc.text(`Generated on ${new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`, 105, footerY, { align: 'center' });
   
-  doc.save('2026_Safe_Harbor_Plan.pdf');
+  doc.save('2025_Safe_Harbor_Plan.pdf');
 }

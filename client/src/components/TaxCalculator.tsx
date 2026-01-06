@@ -22,7 +22,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { AFFILIATE_LINKS } from '../lib/constants';
 import {
   calculateTaxes,
   formatCurrency,
@@ -30,7 +29,7 @@ import {
   parseCurrency,
   type FilingStatus,
   type TaxCalculationResult,
-  TAX_CONSTANTS_2026,
+  TAX_CONSTANTS_2025,
 } from '@/lib/taxCalculator';
 import { useLocalStorage, clearTaxCalculatorStorage } from '@/hooks/useLocalStorage';
 import { generateTaxSummaryPDF, generate1040ESVouchers, generateLeadMagnetPDF } from '@/lib/pdfExport';
@@ -54,6 +53,7 @@ function CurrencyInput({ id, label, tooltip, value, onChange, placeholder }: Cur
 
   const handleBlur = () => {
     setIsFocused(false);
+    // Format on blur
     if (value) {
       const numValue = parseInt(value, 10);
       if (!isNaN(numValue)) {
@@ -218,10 +218,10 @@ interface QuarterlyBreakdownProps {
 
 function QuarterlyBreakdown({ quarterlyAmount }: QuarterlyBreakdownProps) {
   const quarters = [
-    { label: 'Q1', date: 'Apr 15, 2026' },
-    { label: 'Q2', date: 'Jun 15, 2026' },
-    { label: 'Q3', date: 'Sep 15, 2026' },
-    { label: 'Q4', date: 'Jan 15, 2027' },
+    { label: 'Q1', date: 'Apr 15, 2025' },
+    { label: 'Q2', date: 'Jun 16, 2025' },
+    { label: 'Q3', date: 'Sep 15, 2025' },
+    { label: 'Q4', date: 'Jan 15, 2026' },
   ];
 
   return (
@@ -265,11 +265,11 @@ interface CalculationExplanationProps {
 
 function CalculationExplanation({ netProfit, filingStatus, priorYearTax, priorYearAGI, result }: CalculationExplanationProps) {
   const [isOpen, setIsOpen] = useState(false);
-
-  const standardDeduction = TAX_CONSTANTS_2026.standardDeduction[filingStatus];
+  
+  const standardDeduction = TAX_CONSTANTS_2025.standardDeduction[filingStatus];
   const seTaxableEarnings = netProfit * 0.9235;
-  const isHighIncome = priorYearAGI > TAX_CONSTANTS_2026.safeHarborHighIncomeThreshold;
-
+  const isHighIncome = priorYearAGI > TAX_CONSTANTS_2025.safeHarborHighIncomeThreshold;
+  
   const steps = [
     {
       title: 'Step 1: Calculate SE Taxable Earnings',
@@ -292,15 +292,15 @@ function CalculationExplanation({ netProfit, filingStatus, priorYearTax, priorYe
       calculation: `Federal Income Tax = ${formatCurrency(result.incomeTax.federalIncomeTax)}`,
     },
     {
-      title: 'Step 5: Total 2026 Projected Tax',
+      title: 'Step 5: Total 2025 Projected Tax',
       description: 'Add self-employment tax and federal income tax together.',
       calculation: `${formatCurrency(result.selfEmploymentTax.totalSETax)} + ${formatCurrency(result.incomeTax.federalIncomeTax)} = ${formatCurrency(result.currentYearTotalTax)}`,
     },
     {
       title: 'Step 6: Calculate Safe Harbor Minimum',
       description: isHighIncome 
-        ? `Since your 2025 AGI (${formatCurrency(priorYearAGI)}) exceeded $150,000, you must pay 110% of last year's tax.`
-        : `Since your 2025 AGI (${formatCurrency(priorYearAGI)}) was $150,000 or less, you pay 100% of last year's tax.`,
+        ? `Since your 2024 AGI (${formatCurrency(priorYearAGI)}) exceeded $150,000, you must pay 110% of last year's tax.`
+        : `Since your 2024 AGI (${formatCurrency(priorYearAGI)}) was $150,000 or less, you pay 100% of last year's tax.`,
       calculation: `${formatCurrency(priorYearTax)} × ${isHighIncome ? '110%' : '100%'} = ${formatCurrency(result.safeHarborMinimum)}`,
     },
     {
@@ -346,7 +346,7 @@ function CalculationExplanation({ netProfit, filingStatus, priorYearTax, priorYe
                 </div>
               </div>
             ))}
-
+            
             <div className="bg-primary/5 border border-primary/10 rounded-lg p-4 mt-4">
               <p className="text-sm font-medium text-foreground mb-1">Your Quarterly Payment</p>
               <p className="text-xs text-muted-foreground">
@@ -367,14 +367,17 @@ interface PenaltySavingsComparisonProps {
 
 function PenaltySavingsComparison({ result, priorYearTax }: PenaltySavingsComparisonProps) {
   const [isOpen, setIsOpen] = useState(false);
-
+  
   const irsInterestRate = 0.08;
+  
   const worstCaseUnderpayment = Math.max(0, result.currentYearTotalTax - result.safeHarborMinimum);
+  
   const averageQuartersUnderpaid = 2;
   const potentialPenalty = worstCaseUnderpayment * (irsInterestRate / 12) * (averageQuartersUnderpaid * 3);
+  
   const differenceFromSafeHarbor = result.currentYearAvoidanceMinimum - result.safeHarborMinimum;
   const cashFlowSavings = differenceFromSafeHarbor > 0 ? differenceFromSafeHarbor : 0;
-
+  
   if (priorYearTax === 0) return null;
 
   return (
@@ -403,7 +406,8 @@ function PenaltySavingsComparison({ result, priorYearTax }: PenaltySavingsCompar
                     You're Protected from Underpayment Penalties
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    By paying the Safe Harbor amount ({formatCurrency(result.safeHarborMinimum)}), you are protected from IRS underpayment penalties under Safe Harbor rules—even if your actual 2026 income is higher than estimated.
+                    By paying the Safe Harbor amount ({formatCurrency(result.safeHarborMinimum)}), you're guaranteed 
+                    to avoid IRS underpayment penalties—even if your actual 2025 income is higher than estimated.
                   </p>
                 </div>
               </div>
@@ -411,7 +415,7 @@ function PenaltySavingsComparison({ result, priorYearTax }: PenaltySavingsCompar
 
             <div className="space-y-3">
               <h4 className="text-sm font-medium text-foreground">What Safe Harbor Saves You</h4>
-
+              
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-muted rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
@@ -448,7 +452,7 @@ function PenaltySavingsComparison({ result, priorYearTax }: PenaltySavingsCompar
                     </div>
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Peace of mind</span>
-                      <span className="tabular-nums font-medium text-[hsl(var(--emerald-600))]">Protected</span>
+                      <span className="tabular-nums font-medium text-[hsl(var(--emerald-600))]">Guaranteed</span>
                     </div>
                   </div>
                 </div>
@@ -487,7 +491,7 @@ export default function TaxCalculator() {
   const [priorYearTax, setPriorYearTax] = useLocalStorage('priorYearTax', '');
   const [priorYearAGI, setPriorYearAGI] = useLocalStorage('priorYearAGI', '');
   const [currentYearProfit, setCurrentYearProfit] = useLocalStorage('currentYearProfit', '');
-
+  
   const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
@@ -533,31 +537,44 @@ export default function TaxCalculator() {
     const priorTax = parseInt(priorYearTax, 10) || 0;
     const multiplierPercent = Math.round(result.safeHarborMultiplier * 100);
     return [
-      { label: '2025 Total Tax', value: priorTax },
+      { label: '2024 Total Tax', value: priorTax },
       { label: `Multiplier (${multiplierPercent}%)`, value: result.safeHarborMinimum },
     ];
   }, [result, priorYearTax]);
 
+  // Determine which card to recommend
   const isSafeHarborRecommended = result ? !result.isCurrentYearLower : false;
 
   const handleEmailSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate form fields
     const errors: { firstName?: string; email?: string } = {};
-    if (!firstName.trim()) errors.firstName = 'Please enter your first name';
+    
+    if (!firstName.trim()) {
+      errors.firstName = 'Please enter your first name';
+    }
+    
     if (!email.trim()) {
       errors.email = 'Please enter your email address';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       errors.email = 'Please enter a valid email address';
     }
+    
     if (Object.keys(errors).length > 0) {
       setFormErrors(errors);
       return;
     }
+    
     if (!result) return;
+    
     setFormErrors({});
     setIsSubmitting(true);
+    
+    // Subscribe to Beehiiv newsletter via backend proxy
+    let subscriptionSuccess = false;
     try {
-      await fetch('/api/subscribe', {
+      const response = await fetch('/api/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
@@ -565,9 +582,19 @@ export default function TaxCalculator() {
           firstName: firstName.trim() 
         }),
       });
+      
+      if (response.ok) {
+        subscriptionSuccess = true;
+        console.log('Successfully subscribed to newsletter');
+      } else {
+        console.error('Newsletter subscription failed, but continuing with PDF download');
+      }
     } catch (error) {
       console.error('Newsletter subscription error:', error);
+      // Continue with PDF download even if subscription fails
     }
+    
+    // Generate and download the PDF
     generateLeadMagnetPDF({
       filingStatus,
       priorYearTax: parseInt(priorYearTax, 10) || 0,
@@ -577,6 +604,8 @@ export default function TaxCalculator() {
       firstName: firstName.trim(),
       email: email.trim(),
     });
+    
+    // Reset modal state
     setTimeout(() => {
       setIsSubmitting(false);
       setIsEmailModalOpen(false);
@@ -588,6 +617,7 @@ export default function TaxCalculator() {
   return (
     <div className="min-h-screen bg-background py-8 md:py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-8">
+        {/* Header */}
         <header className="text-center space-y-4">
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <Lock className="h-4 w-4" />
@@ -595,7 +625,7 @@ export default function TaxCalculator() {
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold text-foreground" data-testid="text-title">
-              Safe Harbor 2026 Tax Shield
+              Safe Harbor 2025 Tax Shield
             </h1>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
               Calculate your estimated quarterly tax payments and avoid IRS underpayment penalties
@@ -603,6 +633,7 @@ export default function TaxCalculator() {
           </div>
         </header>
 
+        {/* Input Card */}
         <Card className="shadow-lg" data-testid="card-input">
           <CardHeader className="flex flex-row items-center justify-between gap-4">
             <CardTitle className="flex items-center gap-2 text-lg font-medium">
@@ -624,29 +655,32 @@ export default function TaxCalculator() {
           </CardHeader>
           <CardContent className="space-y-6">
             <FilingStatusToggle value={filingStatus} onChange={setFilingStatus} />
+            
             <div className="border-t border-border pt-6 space-y-6">
               <CurrencyInput
                 id="prior-year-tax"
-                label="2025 Total Tax Liability"
+                label="2024 Total Tax Liability"
                 tooltip="Look at Form 1040, Line 24. This is your total tax before payments and credits."
                 value={priorYearTax}
                 onChange={setPriorYearTax}
                 placeholder="e.g., 25,000"
               />
+              
               <CurrencyInput
                 id="prior-year-agi"
-                label="2025 Adjusted Gross Income (AGI)"
+                label="2024 Adjusted Gross Income (AGI)"
                 tooltip="Look at Form 1040, Line 11. This determines if you need to pay 100% or 110% of last year's tax."
                 value={priorYearAGI}
                 onChange={setPriorYearAGI}
                 placeholder="e.g., 150,000"
               />
             </div>
+            
             <div className="border-t border-border pt-6">
               <CurrencyInput
                 id="current-year-profit"
-                label="2026 Estimated Net Profit"
-                tooltip="Your expected business revenue minus expenses for 2026. This is your self-employment income."
+                label="2025 Estimated Net Profit"
+                tooltip="Your expected business revenue minus expenses for 2025. This is your self-employment income."
                 value={currentYearProfit}
                 onChange={setCurrentYearProfit}
                 placeholder="e.g., 200,000"
@@ -655,8 +689,10 @@ export default function TaxCalculator() {
           </CardContent>
         </Card>
 
+        {/* Results Section */}
         {result && (
           <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* Savings Banner */}
             {result.savings > 0 && (
               <div 
                 className="bg-gradient-to-r from-[hsl(var(--emerald-50))] to-[hsl(var(--emerald-100))] border border-[hsl(var(--emerald-200))] rounded-lg p-4 flex items-center gap-3"
@@ -678,10 +714,11 @@ export default function TaxCalculator() {
               </div>
             )}
 
+            {/* Result Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <ResultCard
                 title="What you think you owe"
-                subtitle="Based on 2026 Income"
+                subtitle="Based on 2025 Income"
                 amount={result.currentYearAvoidanceMinimum}
                 breakdown={currentYearBreakdown}
                 isRecommended={result.isCurrentYearLower}
@@ -697,8 +734,10 @@ export default function TaxCalculator() {
               />
             </div>
 
+            {/* Quarterly Breakdown */}
             <QuarterlyBreakdown quarterlyAmount={result.quarterlyPayment} />
 
+            {/* Download Report CTA */}
             <Card className="border-2 border-primary/20 bg-primary/5" data-testid="card-download-report">
               <CardContent className="pt-6 text-center space-y-4">
                 <div className="space-y-2">
@@ -714,11 +753,12 @@ export default function TaxCalculator() {
                   data-testid="button-download-report"
                 >
                   <Download className="h-5 w-5 mr-2" />
-                  Download Your 2026 Tax Plan
+                  Download Your 2025 Tax Plan
                 </Button>
               </CardContent>
             </Card>
 
+            {/* FreshBooks Affiliate Card */}
             <Card className="border border-blue-200 bg-blue-50 dark:bg-blue-950/30 dark:border-blue-800" data-testid="card-freshbooks-affiliate">
               <CardContent className="pt-6">
                 <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
@@ -727,7 +767,7 @@ export default function TaxCalculator() {
                       Stop Guessing
                     </h3>
                     <p className="text-sm text-muted-foreground">
-                      This tool provides planning estimates. To automatically track your actual write-offs and lock in your savings, we recommend FreshBooks.
+                      This calculator is for estimation. To automatically track your write-offs and lower your tax bill in real-time, we recommend FreshBooks.
                     </p>
                   </div>
                   <Button
@@ -736,7 +776,7 @@ export default function TaxCalculator() {
                     data-testid="button-freshbooks-cta"
                   >
                     <a 
-                      href={AFFILIATE_LINKS.freshbooks} 
+                      href="https://www.freshbooks.com" 
                       target="_blank" 
                       rel="noopener noreferrer"
                     >
@@ -748,6 +788,7 @@ export default function TaxCalculator() {
               </CardContent>
             </Card>
 
+            {/* Export Section */}
             <Card data-testid="card-export">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-medium">
@@ -793,6 +834,7 @@ export default function TaxCalculator() {
               </CardContent>
             </Card>
 
+            {/* Calculation Explanation */}
             <CalculationExplanation
               netProfit={parseInt(currentYearProfit, 10) || 0}
               filingStatus={filingStatus}
@@ -801,20 +843,23 @@ export default function TaxCalculator() {
               result={result}
             />
 
+            {/* Penalty Savings Comparison */}
             <PenaltySavingsComparison
               result={result}
               priorYearTax={parseInt(priorYearTax, 10) || 0}
             />
 
+            {/* Tax Calculation Details */}
             <Card data-testid="card-details">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-medium">
                   <Info className="h-5 w-5 text-muted-foreground" />
-                  2026 Tax Calculation Details
+                  2025 Tax Calculation Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Self-Employment Tax */}
                   <div className="space-y-3">
                     <h4 className="text-sm font-medium text-foreground">Self-Employment Tax</h4>
                     <div className="space-y-2 text-sm">
@@ -839,6 +884,7 @@ export default function TaxCalculator() {
                     </div>
                   </div>
 
+                  {/* Income Tax */}
                   <div className="space-y-3">
                     <h4 className="text-sm font-medium text-foreground">Federal Income Tax</h4>
                     <div className="space-y-2 text-sm">
@@ -874,14 +920,16 @@ export default function TaxCalculator() {
               </CardContent>
             </Card>
 
+            {/* Disclaimer */}
             <p className="text-xs text-muted-foreground text-center px-4">
               This calculator provides estimates for informational purposes only and should not be 
               considered tax advice. Consult a qualified tax professional for your specific situation.
-              All calculations use projected 2026 tax rates and brackets.
+              All calculations use projected 2025 tax rates and brackets.
             </p>
           </div>
         )}
 
+        {/* Empty State */}
         {!result && (
           <div 
             className="text-center py-12 text-muted-foreground"
@@ -892,6 +940,7 @@ export default function TaxCalculator() {
           </div>
         )}
 
+        {/* Branding Footer */}
         <footer className="mt-12 pb-8 text-center" data-testid="footer-branding">
           <p className="text-sm text-slate-400">
             Built by{' '}
@@ -918,6 +967,7 @@ export default function TaxCalculator() {
         </footer>
       </div>
 
+      {/* Email Capture Modal */}
       <Dialog open={isEmailModalOpen} onOpenChange={(open) => {
         setIsEmailModalOpen(open);
         if (!open) {
@@ -931,7 +981,7 @@ export default function TaxCalculator() {
               Get Your Free Tax Plan
             </DialogTitle>
             <DialogDescription>
-              Enter your details below to download your personalized 2026 Safe Harbor payment schedule.
+              Enter your details below to download your personalized 2025 Safe Harbor payment schedule.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEmailSubmit} className="space-y-4">
