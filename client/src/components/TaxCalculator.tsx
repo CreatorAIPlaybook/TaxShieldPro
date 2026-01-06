@@ -30,7 +30,7 @@ import {
   parseCurrency,
   type FilingStatus,
   type TaxCalculationResult,
-  TAX_CONSTANTS_2025,
+  TAX_CONSTANTS_2026,
 } from '@/lib/taxCalculator';
 import { useLocalStorage, clearTaxCalculatorStorage } from '@/hooks/useLocalStorage';
 import { generateTaxSummaryPDF, generate1040ESVouchers, generateLeadMagnetPDF } from '@/lib/pdfExport';
@@ -218,10 +218,10 @@ interface QuarterlyBreakdownProps {
 
 function QuarterlyBreakdown({ quarterlyAmount }: QuarterlyBreakdownProps) {
   const quarters = [
-    { label: 'Q1', date: 'Apr 15, 2025' },
-    { label: 'Q2', date: 'Jun 16, 2025' },
-    { label: 'Q3', date: 'Sep 15, 2025' },
-    { label: 'Q4', date: 'Jan 15, 2026' },
+    { label: 'Q1', date: 'Apr 15, 2026' },
+    { label: 'Q2', date: 'Jun 15, 2026' },
+    { label: 'Q3', date: 'Sep 15, 2026' },
+    { label: 'Q4', date: 'Jan 15, 2027' },
   ];
 
   return (
@@ -266,9 +266,9 @@ interface CalculationExplanationProps {
 function CalculationExplanation({ netProfit, filingStatus, priorYearTax, priorYearAGI, result }: CalculationExplanationProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const standardDeduction = TAX_CONSTANTS_2025.standardDeduction[filingStatus];
+  const standardDeduction = TAX_CONSTANTS_2026.standardDeduction[filingStatus];
   const seTaxableEarnings = netProfit * 0.9235;
-  const isHighIncome = priorYearAGI > TAX_CONSTANTS_2025.safeHarborHighIncomeThreshold;
+  const isHighIncome = priorYearAGI > TAX_CONSTANTS_2026.safeHarborHighIncomeThreshold;
 
   const steps = [
     {
@@ -292,15 +292,15 @@ function CalculationExplanation({ netProfit, filingStatus, priorYearTax, priorYe
       calculation: `Federal Income Tax = ${formatCurrency(result.incomeTax.federalIncomeTax)}`,
     },
     {
-      title: 'Step 5: Total 2025 Projected Tax',
+      title: 'Step 5: Total 2026 Projected Tax',
       description: 'Add self-employment tax and federal income tax together.',
       calculation: `${formatCurrency(result.selfEmploymentTax.totalSETax)} + ${formatCurrency(result.incomeTax.federalIncomeTax)} = ${formatCurrency(result.currentYearTotalTax)}`,
     },
     {
       title: 'Step 6: Calculate Safe Harbor Minimum',
       description: isHighIncome 
-        ? `Since your 2024 AGI (${formatCurrency(priorYearAGI)}) exceeded $150,000, you must pay 110% of last year's tax.`
-        : `Since your 2024 AGI (${formatCurrency(priorYearAGI)}) was $150,000 or less, you pay 100% of last year's tax.`,
+        ? `Since your 2025 AGI (${formatCurrency(priorYearAGI)}) exceeded $150,000, you must pay 110% of last year's tax.`
+        : `Since your 2025 AGI (${formatCurrency(priorYearAGI)}) was $150,000 or less, you pay 100% of last year's tax.`,
       calculation: `${formatCurrency(priorYearTax)} × ${isHighIncome ? '110%' : '100%'} = ${formatCurrency(result.safeHarborMinimum)}`,
     },
     {
@@ -403,7 +403,7 @@ function PenaltySavingsComparison({ result, priorYearTax }: PenaltySavingsCompar
                     You're Protected from Underpayment Penalties
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    By paying the Safe Harbor amount ({formatCurrency(result.safeHarborMinimum)}), you are protected from IRS underpayment penalties under Safe Harbor rules—even if your actual 2025 income is higher than estimated.
+                    By paying the Safe Harbor amount ({formatCurrency(result.safeHarborMinimum)}), you are protected from IRS underpayment penalties under Safe Harbor rules—even if your actual 2026 income is higher than estimated.
                   </p>
                 </div>
               </div>
@@ -533,7 +533,7 @@ export default function TaxCalculator() {
     const priorTax = parseInt(priorYearTax, 10) || 0;
     const multiplierPercent = Math.round(result.safeHarborMultiplier * 100);
     return [
-      { label: '2024 Total Tax', value: priorTax },
+      { label: '2025 Total Tax', value: priorTax },
       { label: `Multiplier (${multiplierPercent}%)`, value: result.safeHarborMinimum },
     ];
   }, [result, priorYearTax]);
@@ -595,7 +595,7 @@ export default function TaxCalculator() {
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold text-foreground" data-testid="text-title">
-              Safe Harbor 2025 Tax Shield
+              Safe Harbor 2026 Tax Shield
             </h1>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
               Calculate your estimated quarterly tax payments and avoid IRS underpayment penalties
@@ -627,7 +627,7 @@ export default function TaxCalculator() {
             <div className="border-t border-border pt-6 space-y-6">
               <CurrencyInput
                 id="prior-year-tax"
-                label="2024 Total Tax Liability"
+                label="2025 Total Tax Liability"
                 tooltip="Look at Form 1040, Line 24. This is your total tax before payments and credits."
                 value={priorYearTax}
                 onChange={setPriorYearTax}
@@ -635,7 +635,7 @@ export default function TaxCalculator() {
               />
               <CurrencyInput
                 id="prior-year-agi"
-                label="2024 Adjusted Gross Income (AGI)"
+                label="2025 Adjusted Gross Income (AGI)"
                 tooltip="Look at Form 1040, Line 11. This determines if you need to pay 100% or 110% of last year's tax."
                 value={priorYearAGI}
                 onChange={setPriorYearAGI}
@@ -645,8 +645,8 @@ export default function TaxCalculator() {
             <div className="border-t border-border pt-6">
               <CurrencyInput
                 id="current-year-profit"
-                label="2025 Estimated Net Profit"
-                tooltip="Your expected business revenue minus expenses for 2025. This is your self-employment income."
+                label="2026 Estimated Net Profit"
+                tooltip="Your expected business revenue minus expenses for 2026. This is your self-employment income."
                 value={currentYearProfit}
                 onChange={setCurrentYearProfit}
                 placeholder="e.g., 200,000"
@@ -681,7 +681,7 @@ export default function TaxCalculator() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <ResultCard
                 title="What you think you owe"
-                subtitle="Based on 2025 Income"
+                subtitle="Based on 2026 Income"
                 amount={result.currentYearAvoidanceMinimum}
                 breakdown={currentYearBreakdown}
                 isRecommended={result.isCurrentYearLower}
@@ -714,7 +714,7 @@ export default function TaxCalculator() {
                   data-testid="button-download-report"
                 >
                   <Download className="h-5 w-5 mr-2" />
-                  Download Your 2025 Tax Plan
+                  Download Your 2026 Tax Plan
                 </Button>
               </CardContent>
             </Card>
@@ -810,7 +810,7 @@ export default function TaxCalculator() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-lg font-medium">
                   <Info className="h-5 w-5 text-muted-foreground" />
-                  2025 Tax Calculation Details
+                  2026 Tax Calculation Details
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -877,7 +877,7 @@ export default function TaxCalculator() {
             <p className="text-xs text-muted-foreground text-center px-4">
               This calculator provides estimates for informational purposes only and should not be 
               considered tax advice. Consult a qualified tax professional for your specific situation.
-              All calculations use projected 2025 tax rates and brackets.
+              All calculations use projected 2026 tax rates and brackets.
             </p>
           </div>
         )}
@@ -931,7 +931,7 @@ export default function TaxCalculator() {
               Get Your Free Tax Plan
             </DialogTitle>
             <DialogDescription>
-              Enter your details below to download your personalized 2025 Safe Harbor payment schedule.
+              Enter your details below to download your personalized 2026 Safe Harbor payment schedule.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleEmailSubmit} className="space-y-4">
