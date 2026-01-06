@@ -1,8 +1,8 @@
-# Safe Harbor 2025 Tax Shield
+# Safe Harbor 2026 Tax Shield
 
 ## Overview
 
-Safe Harbor 2025 Tax Shield is a privacy-focused, client-side tax calculator designed for US solopreneurs and freelancers earning $50k-$500k annually. The application calculates estimated quarterly tax payments for the 2025 tax year using the IRS "Safe Harbor" method to help users avoid underpayment penalties. Built as a single-page React application, it performs all calculations in the browser without any backend database, ensuring complete user privacy. The interface follows a Stripe-inspired FinTech aesthetic emphasizing trust, clarity, and transparency.
+Safe Harbor 2026 Tax Shield is a privacy-focused, client-side tax calculator designed for US solopreneurs and freelancers earning $50k-$500k annually. The application calculates estimated quarterly tax payments for the 2026 tax year using the IRS "Safe Harbor" method to help users avoid underpayment penalties. Built as a single-page React application, it performs all calculations in the browser without any backend database, ensuring complete user privacy. The interface follows a Stripe-inspired FinTech aesthetic emphasizing trust, clarity, and transparency.
 
 ## User Preferences
 
@@ -30,10 +30,10 @@ Preferred communication style: Simple, everyday language.
 
 **Tax Calculation Logic**
 - Pure client-side calculations implemented in `lib/taxCalculator.ts`
-- 2025 tax year constants including standard deductions, tax brackets, and self-employment tax rates
+- 2026 tax year constants including standard deductions, tax brackets, and self-employment tax rates
 - Safe Harbor algorithm implementation: calculates the lesser of 100%/110% of prior year tax OR 90% of current year projected liability
 - Progressive tax bracket calculations for both single and married filing statuses
-- Self-employment tax calculations with Social Security wage base caps and Medicare thresholds
+- Self-employment tax calculations with Social Security wage base ($184,500 for 2026) and Medicare thresholds
 
 **Design System Principles**
 1. Trust through transparency: All calculation steps visible to users
@@ -98,7 +98,7 @@ Preferred communication style: Simple, everyday language.
 
 1. **Privacy-First Architecture**: No backend database ensures user financial data never leaves their browser, addressing privacy concerns critical for tax calculations.
 
-2. **Client-Side Calculations**: All tax logic runs in the browser using exact 2025 tax year constants, eliminating server dependency and enabling offline functionality.
+2. **Client-Side Calculations**: All tax logic runs in the browser using exact 2026 tax year constants, eliminating server dependency and enabling offline functionality.
 
 3. **Component Library Choice**: Shadcn/ui provides copy-paste components rather than npm dependency, allowing customization while maintaining design consistency.
 
@@ -110,7 +110,15 @@ Preferred communication style: Simple, everyday language.
 
 7. **Future-Ready Infrastructure**: Database and session management infrastructure present but inactive, allowing easy opt-in feature additions without architectural changes.
 
-## Recent Changes (December 2025)
+## Recent Changes (January 2026)
+
+### Annual Rollover to 2026 Tax Year
+- **Planning Year**: Updated from 2025 to 2026
+- **Baseline Year**: Updated from 2024 to 2025
+- **Tax Constants Updated**: Standard deduction (Single: $16,100, Married: $32,200), Social Security wage base ($184,500)
+- **Tax Brackets Updated**: Adjusted for 2026 inflation
+- **Quarterly Dates Updated**: Q1 Apr 15, Q2 Jun 15, Q3 Sep 15, Q4 Jan 15 (2027)
+- **All PDFs Updated**: Filenames and content now reflect 2026 tax year
 
 ### Completed Features
 - **Local Storage Persistence**: User inputs (filing status, prior year tax, prior year AGI, current year profit) persist across browser sessions using the `useLocalStorage` hook
@@ -121,7 +129,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Lead Generation Features
 - **Email Capture Modal ("Soft Gate")**: Modal popup that collects first name and email before downloading the personalized tax plan PDF
-- **Lead Magnet PDF**: Professional PDF named "2025_Safe_Harbor_Plan.pdf" with personalized greeting, 4 quarterly payment deadlines, and exact dollar amounts
+- **Lead Magnet PDF**: Professional PDF named "2026_Safe_Harbor_Plan.pdf" with personalized greeting, 4 quarterly payment deadlines, and exact dollar amounts
 - **FreshBooks Affiliate Card ("Revenue Bridge")**: High-visibility card with "Stop Guessing" headline promoting FreshBooks with "Start Free Trial" CTA
 - **Beehiiv Newsletter Integration**: Backend proxy at `/api/subscribe` securely connects to Beehiiv API for newsletter subscriptions
 
@@ -134,7 +142,7 @@ Preferred communication style: Simple, everyday language.
 
 ### Key Files
 - `client/src/components/TaxCalculator.tsx` - Main calculator component with all UI including email modal
-- `client/src/lib/taxCalculator.ts` - Pure calculation logic with 2025 tax constants
+- `client/src/lib/taxCalculator.ts` - Pure calculation logic with 2026 tax constants (TAX_CONSTANTS_2026, TAX_BRACKETS_2026)
 - `client/src/lib/pdfExport.ts` - PDF generation including lead magnet PDF with personalized content
 - `client/src/hooks/useLocalStorage.ts` - Local storage persistence hook
 - `design_guidelines.md` - Stripe-inspired FinTech design system
