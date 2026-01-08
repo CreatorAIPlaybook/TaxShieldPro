@@ -125,7 +125,7 @@ Preferred communication style: Simple, everyday language.
 - **Calculation Explanation**: Collapsible 7-step breakdown showing exactly how Safe Harbor calculations work
 - **Penalty Savings Comparison**: Shows potential IRS underpayment penalties avoided by using Safe Harbor method
 - **PDF Export**: Two export options - Tax Summary PDF and IRS Form 1040-ES payment vouchers using jspdf library
-- **Branding Footer**: Footer with link to Playbook Media at creatoraiplaybook.co
+- **Branding Footer**: Footer with link to Udaller at creatoraiplaybook.co
 
 ### Lead Generation Features
 - **Email Capture Modal ("Soft Gate")**: Modal popup that collects first name and email before downloading the personalized tax plan PDF
