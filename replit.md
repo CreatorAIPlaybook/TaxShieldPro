@@ -19,9 +19,9 @@ Preferred communication style: Simple, everyday language.
 
 **UI Component System**
 - Shadcn/ui component library with Radix UI primitives for accessible, unstyled components
-- Tailwind CSS for utility-first styling following a custom design system
-- Custom theme with Stripe-inspired FinTech aesthetic defined in CSS variables
-- Inter font family (Google Fonts) optimized for financial data readability
+- Tailwind CSS for utility-first styling following the Udaller One "Obsidian" design system
+- Custom theme with Obsidian color scheme defined in CSS variables (dark-only)
+- Inter font family for labels/text, JetBrains Mono for all financial numbers/currency/percentages
 
 **State Management & Data Fetching**
 - TanStack Query (React Query) for async state management and caching
@@ -35,12 +35,15 @@ Preferred communication style: Simple, everyday language.
 - Progressive tax bracket calculations for both single and married filing statuses
 - Self-employment tax calculations with Social Security wage base ($184,500 for 2026) and Medicare thresholds
 
-**Design System Principles**
-1. Trust through transparency: All calculation steps visible to users
-2. Privacy-first visual language: Minimal UI chrome, no tracking indicators
-3. Clarity over cleverness: Direct labels, obvious interactions, zero ambiguity
-4. Consistent spacing using Tailwind units (4, 6, 8, 12, 16)
-5. Typography hierarchy with Inter font at various weights for different UI elements
+**Udaller One "Obsidian" Design System**
+- Background: #0F1115 (deep obsidian black)
+- Cards/Containers: #161B22 with border-white/10 borders
+- Primary buttons: #F4C430 gold with #0F1115 dark text, font-bold
+- Secondary buttons: border-white/20, text-white, hover:bg-white/5
+- Typography: JetBrains Mono (font-mono) for ALL currency, percentages, numbers; Inter (font-sans) for labels
+- Cards: rounded-xl corners; Inputs/Buttons: rounded-lg
+- No green buttons (gold only); green reserved for profit/positive text indicators
+- Dark-only theme (html class="dark")
 
 ### Backend Architecture
 
@@ -106,11 +109,19 @@ Preferred communication style: Simple, everyday language.
 
 5. **Type Safety**: TypeScript throughout ensures tax calculation accuracy through compile-time type checking.
 
-6. **Design System**: Stripe-inspired aesthetic chosen to convey trust and professionalism essential for financial tools, documented in `design_guidelines.md`.
+6. **Design System**: Udaller One "Obsidian" dark theme with gold (#F4C430) accents, JetBrains Mono for financial data, documented in CSS variables and `design_guidelines.md`.
 
 7. **Future-Ready Infrastructure**: Database and session management infrastructure present but inactive, allowing easy opt-in feature additions without architectural changes.
 
 ## Recent Changes (January 2026)
+
+### Udaller One "Obsidian" Design System Reskin
+- **Color Scheme**: Full reskin from Stripe-inspired FinTech to Obsidian dark theme
+- **Background**: #0F1115, Cards: #161B22, Gold accents: #F4C430
+- **Typography**: JetBrains Mono for all financial numbers, Inter for labels
+- **Buttons**: Gold primary (#F4C430), outline secondary (border-white/20)
+- **UI Polish**: rounded-xl cards, rounded-lg inputs/buttons, border-white/10 borders
+- **Dark-Only**: html class="dark" forced, no light mode toggle
 
 ### Annual Rollover to 2026 Tax Year
 - **Planning Year**: Updated from 2025 to 2026
