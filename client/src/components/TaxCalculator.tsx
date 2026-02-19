@@ -587,14 +587,14 @@ export default function TaxCalculator() {
   return (
     <div className="min-h-screen bg-[#0F1115] py-8 md:py-12 px-4">
       <div className="max-w-2xl mx-auto space-y-8">
-        <header className="text-center space-y-4">
+        <header className="text-center space-y-4 mb-8">
           <div className="flex items-center justify-center gap-2 text-muted-foreground">
             <Lock className="h-4 w-4" />
             <span className="text-xs font-medium">100% Private - Stored Only on Your Device</span>
           </div>
           <div className="space-y-2">
             <h1 className="text-3xl font-semibold text-white" data-testid="text-title">
-              Safe Harbor 2026 Tax Shield
+              Calculate Your 2026 Tax Liability
             </h1>
             <p className="text-muted-foreground text-sm max-w-md mx-auto">
               Calculate your estimated quarterly tax payments and avoid IRS underpayment penalties
@@ -885,27 +885,28 @@ export default function TaxCalculator() {
         )}
 
         <footer className="mt-12 pb-8 text-center" data-testid="footer-branding">
-          <p className="text-sm text-white/40">
-            Built by{' '}
+          <p className="text-sm text-gray-500">
+            This tool is part of the{' '}
             <a 
-              href="https://creatoraiplaybook.co" 
+              href="https://udaller.one" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="underline hover:text-white/60 transition-colors"
+              className="font-semibold text-gray-400 hover:text-[#F4C430] transition-colors"
               data-testid="link-playbook-media"
             >
               Udaller
             </a>
-            . Get the full system at{' '}
+            {' '}ecosystem. Build your machine at{' '}
             <a 
               href="https://creatoraiplaybook.co" 
               target="_blank" 
               rel="noopener noreferrer"
-              className="underline hover:text-white/60 transition-colors"
+              className="font-semibold text-gray-400 hover:text-[#F4C430] transition-colors"
               data-testid="link-full-system"
             >
-              creatoraiplaybook.co
+              Creator AI Playbook
             </a>
+            .
           </p>
         </footer>
       </div>

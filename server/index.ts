@@ -1,7 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { createServer } from "http";
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { registerRoutes } from "./routes";
 import { serveStatic } from "./static";
-import { createServer } from "http";
+
+const __filename = fileURLToPath(import.meta.url);
+const isMainModule =
+  process.argv[1] != null &&
+  resolve(process.argv[1]) === resolve(__filename);
 
 const app = express();
 
@@ -80,15 +87,12 @@ const httpServer = createServer(app);
     serveStatic(app);
   }
 
-  const port = parseInt(process.env.PORT || "5000", 10);
-  httpServer.listen(
-    {
-      port,
-      host: "0.0.0.0",
-      reusePort: true,
-    },
-    () => {
+  if (process.env.NODE_ENV !== "production" && isMainModule) {
+    const port = parseInt(process.env.PORT || "5000", 10);
+    httpServer.listen(port, () => {
       log(`serving on port ${port}`);
-    },
-  );
+    });
+  }
 })();
+
+export default app;
