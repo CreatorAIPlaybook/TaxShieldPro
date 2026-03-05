@@ -898,13 +898,13 @@ export default function TaxCalculator() {
             </a>
             {' '}ecosystem. Build your machine at{' '}
             <a 
-              href="https://creatoraiplaybook.co" 
+              href="https://udallerprotocol.com/" 
               target="_blank" 
               rel="noopener noreferrer"
               className="font-semibold text-gray-400 hover:text-[#F4C430] transition-colors"
               data-testid="link-full-system"
             >
-              Creator AI Playbook
+              The Udaller Protocol
             </a>
             .
           </p>
